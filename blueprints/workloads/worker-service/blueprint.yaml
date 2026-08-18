@@ -1,0 +1,16 @@
+apiVersion: platform.example.org/v1alpha1
+kind: WorkloadBlueprint
+metadata:
+  name: workload-worker-service
+spec:
+  description: Golden path for background processors, queue consumers, and scheduled work.
+  produces:
+    - Deployment
+    - ConfigMap
+    - ServiceMonitor
+  requiredInputs:
+    - owner
+    - image
+  optionalCapabilities:
+    - capability-redis
+    - capability-event-stream

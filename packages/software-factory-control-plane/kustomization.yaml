@@ -1,0 +1,6 @@
+resources:
+  - functions.yaml
+  - apis/softwarefactoryenvironment-xrd.yaml
+  - apis/serviceblueprint-xrd.yaml
+  - compositions/softwarefactoryenvironment-composition.yaml
+  - compositions/serviceblueprint-composition.yaml

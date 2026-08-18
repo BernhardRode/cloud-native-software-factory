@@ -1,0 +1,59 @@
+apiVersion: platform.example.org/v1alpha1
+kind: BlueprintCatalog
+metadata:
+  name: enterprise-software-stack
+spec:
+  description: Full software stack pieces a company needs to build, deploy, operate, and secure services on Kubernetes.
+  pieces:
+    - id: tenant-runtime
+      layer: runtime-platform
+      required: true
+      description: Namespace isolation, service accounts, RBAC, resource quotas, limit ranges, and network policies.
+    - id: software-delivery
+      layer: delivery
+      required: true
+      description: GitOps reconciliation, CI/CD pipelines, image build, image scan, promotion gates, and rollback workflow.
+    - id: workload-web-service
+      layer: application-workloads
+      required: true
+      description: HTTP frontend or backend service with Deployment, Service, health checks, scaling, and ingress integration.
+    - id: workload-api-service
+      layer: application-workloads
+      required: true
+      description: API service blueprint with OpenAPI ownership, service metadata, runtime configuration, and dependencies.
+    - id: workload-worker-service
+      layer: application-workloads
+      required: false
+      description: Background worker blueprint for async jobs and event consumers.
+    - id: capability-postgres
+      layer: data
+      required: false
+      description: Relational database capability with backups, restore policy, credentials, and migration workflow.
+    - id: capability-redis
+      layer: data
+      required: false
+      description: Cache capability with tenant-scoped credentials and sizing classes.
+    - id: capability-object-storage
+      layer: data
+      required: false
+      description: Bucket/object storage capability for files, artifacts, reports, and backups.
+    - id: capability-event-stream
+      layer: integration
+      required: false
+      description: Event streaming or queueing capability for async communication between services.
+    - id: capability-observability
+      layer: observability
+      required: true
+      description: Metrics, logs, traces, dashboards, alerts, service health, and SLO definitions.
+    - id: capability-security-baseline
+      layer: security
+      required: true
+      description: Secret management, policies, image scanning, SBOMs, signing, admission control, and audit logging.
+    - id: developer-experience
+      layer: developer-experience
+      required: true
+      description: Golden paths, starter templates, local development instructions, ownership metadata, and documentation.
+    - id: software-factory
+      layer: ai-software-factory
+      required: true
+      description: Tenant-local automation for planning, coding, testing, validating, and proposing application changes.

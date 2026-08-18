@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sf-customer-a-prod
+  labels:
+    softwarefactory.io/tenant: customer-a
+    softwarefactory.io/environment: prod

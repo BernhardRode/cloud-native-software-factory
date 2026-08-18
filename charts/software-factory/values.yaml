@@ -1,0 +1,28 @@
+tenant:
+  name: customer-a
+  displayName: Customer A
+  environment: dev
+  namespace: sf-customer-a-dev
+  clusterName: local
+
+factory:
+  replicas: 1
+  image:
+    repository: ghcr.io/example/software-factory-controller
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+gitops:
+  repository: https://github.com/example/cloud-native-software-factory.git
+  revision: HEAD
+
+sampleApp:
+  enabled: true
+  image: nginx:1.27-alpine

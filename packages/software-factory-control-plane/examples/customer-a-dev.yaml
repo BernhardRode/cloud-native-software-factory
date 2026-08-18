@@ -1,0 +1,21 @@
+apiVersion: platform.example.org/v1alpha1
+kind: SoftwareFactoryEnvironment
+metadata:
+  name: customer-a-dev
+  namespace: sf-customer-a-dev
+spec:
+  tenant:
+    id: customer-a
+    displayName: Customer A
+    clusterName: local
+  environment:
+    name: dev
+    promotionTarget: prod
+  gitops:
+    repository: https://github.com/example/cloud-native-software-factory.git
+    revision: HEAD
+    path: gitops/tenants/customer-a/environments/dev
+  factory:
+    image: ghcr.io/example/software-factory-controller:0.1.0
+    replicas: 1
+    enableSampleApp: true

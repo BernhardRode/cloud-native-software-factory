@@ -1,0 +1,110 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: softwarefactoryenvironment.kubernetes.platform.example.org
+  labels:
+    platform.example.org/provider: kubernetes
+    platform.example.org/type: software-factory
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1alpha1
+    kind: SoftwareFactoryEnvironment
+  mode: Pipeline
+  pipeline:
+    - step: render-tenant-factory
+      functionRef:
+        name: function-go-templating
+      input:
+        apiVersion: gotemplating.fn.crossplane.io/v1beta1
+        kind: GoTemplate
+        source: Inline
+        inline:
+          template: |
+            {{ $xr := .observed.composite.resource }}
+            {{ $tenant := $xr.spec.tenant.id }}
+            {{ $env := $xr.spec.environment.name }}
+            {{ $labels := printf "softwarefactory.io/tenant: %s\nsoftwarefactory.io/environment: %s" $tenant $env }}
+            ---
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: software-factory-config
+              namespace: {{ $xr.metadata.namespace }}
+              labels:
+                {{ $labels | nindent 4 }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: factory-config
+            data:
+              tenant-id: {{ $tenant | quote }}
+              tenant-display-name: {{ $xr.spec.tenant.displayName | quote }}
+              environment: {{ $env | quote }}
+              gitops-repository: {{ $xr.spec.gitops.repository | quote }}
+              gitops-revision: {{ $xr.spec.gitops.revision | quote }}
+              gitops-path: {{ default "" $xr.spec.gitops.path | quote }}
+            ---
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+              name: software-factory
+              namespace: {{ $xr.metadata.namespace }}
+              labels:
+                {{ $labels | nindent 4 }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: factory-service-account
+            ---
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: software-factory
+              namespace: {{ $xr.metadata.namespace }}
+              labels:
+                app.kubernetes.io/name: software-factory
+                {{ $labels | nindent 4 }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: factory-deployment
+            spec:
+              replicas: {{ default 1 $xr.spec.factory.replicas }}
+              selector:
+                matchLabels:
+                  app.kubernetes.io/name: software-factory
+              template:
+                metadata:
+                  labels:
+                    app.kubernetes.io/name: software-factory
+                    softwarefactory.io/tenant: {{ $tenant | quote }}
+                    softwarefactory.io/environment: {{ $env | quote }}
+                spec:
+                  serviceAccountName: software-factory
+                  containers:
+                    - name: controller
+                      image: {{ default "ghcr.io/example/software-factory-controller:0.1.0" $xr.spec.factory.image | quote }}
+                      envFrom:
+                        - configMapRef:
+                            name: software-factory-config
+                      ports:
+                        - name: http
+                          containerPort: 8080
+                      resources:
+                        requests:
+                          cpu: 50m
+                          memory: 64Mi
+                        limits:
+                          cpu: 250m
+                          memory: 256Mi
+            ---
+            apiVersion: v1
+            kind: Service
+            metadata:
+              name: software-factory
+              namespace: {{ $xr.metadata.namespace }}
+              labels:
+                {{ $labels | nindent 4 }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: factory-service
+            spec:
+              selector:
+                app.kubernetes.io/name: software-factory
+              ports:
+                - name: http
+                  port: 80
+                  targetPort: http

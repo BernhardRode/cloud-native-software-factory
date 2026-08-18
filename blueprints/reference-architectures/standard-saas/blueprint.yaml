@@ -1,0 +1,29 @@
+apiVersion: platform.example.org/v1alpha1
+kind: ReferenceArchitectureBlueprint
+metadata:
+  name: standard-saas
+spec:
+  description: Default stack for a tenant that wants to build production-ready SaaS or internal business services.
+  includes:
+    - tenant-runtime
+    - software-delivery
+    - workload-web-service
+    - workload-api-service
+    - workload-worker-service
+    - capability-postgres
+    - capability-redis
+    - capability-object-storage
+    - capability-observability
+    - capability-security-baseline
+    - developer-experience
+    - software-factory
+  environments:
+    - dev
+    - staging
+    - prod
+  promotion:
+    strategy: pull-request-gated
+    source: dev
+    targets:
+      - staging
+      - prod

@@ -1,0 +1,17 @@
+tenant:
+  name: customer-a
+  displayName: Customer A
+  environment: prod
+  namespace: sf-customer-a-prod
+  clusterName: customer-a
+
+factory:
+  replicas: 2
+
+gitops:
+  repository: https://github.com/example/cloud-native-software-factory.git
+  revision: HEAD
+
+sampleApp:
+  enabled: true
+  image: nginx:1.27-alpine

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: software-factory
+description: Tenant-local cloud native software factory scaffold
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

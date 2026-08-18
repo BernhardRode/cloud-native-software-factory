@@ -1,0 +1,14 @@
+namespace: sf-customer-a-prod
+resources:
+  - ../../base
+commonLabels:
+  softwarefactory.io/tenant: customer-a
+  softwarefactory.io/environment: prod
+patches:
+  - target:
+      kind: Deployment
+      name: sample-app
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2

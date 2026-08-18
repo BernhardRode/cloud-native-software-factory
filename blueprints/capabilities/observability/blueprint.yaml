@@ -1,0 +1,17 @@
+apiVersion: platform.example.org/v1alpha1
+kind: CapabilityBlueprint
+metadata:
+  name: capability-observability
+spec:
+  category: observability
+  description: Metrics, logs, traces, dashboards, alerts, and SLOs.
+  defaultStack:
+    metrics: Prometheus
+    dashboards: Grafana
+    tracing: OpenTelemetry
+    logs: Loki compatible storage
+  outputs:
+    - serviceMonitor
+    - dashboard
+    - alertRules
+    - sloPolicy

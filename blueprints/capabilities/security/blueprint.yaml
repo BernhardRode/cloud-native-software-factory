@@ -1,0 +1,17 @@
+apiVersion: platform.example.org/v1alpha1
+kind: CapabilityBlueprint
+metadata:
+  name: capability-security-baseline
+spec:
+  category: security
+  description: Secure-by-default tenant and workload baseline.
+  controls:
+    - namespaceIsolation
+    - leastPrivilegeRbac
+    - networkPolicies
+    - podSecurityStandards
+    - secretManagement
+    - imageScanning
+    - sbom
+    - artifactSigning
+    - auditLogging

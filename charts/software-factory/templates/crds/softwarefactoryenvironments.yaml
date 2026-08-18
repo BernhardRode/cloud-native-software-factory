@@ -1,0 +1,35 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: softwarefactoryenvironments.softwarefactory.io
+spec:
+  group: softwarefactory.io
+  scope: Namespaced
+  names:
+    plural: softwarefactoryenvironments
+    singular: softwarefactoryenvironment
+    kind: SoftwareFactoryEnvironment
+    shortNames:
+      - sfe
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [tenantRef, environmentName]
+              properties:
+                tenantRef:
+                  type: string
+                environmentName:
+                  type: string
+                promotionTarget:
+                  type: string
+                applications:
+                  type: array
+                  items:
+                    type: string

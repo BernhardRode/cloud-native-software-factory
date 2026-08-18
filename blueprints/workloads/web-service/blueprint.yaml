@@ -1,0 +1,15 @@
+apiVersion: platform.example.org/v1alpha1
+kind: WorkloadBlueprint
+metadata:
+  name: workload-web-service
+spec:
+  description: Golden path for a web frontend or HTTP service.
+  produces:
+    - Deployment
+    - Service
+    - Ingress
+    - ServiceMonitor
+  requiredInputs:
+    - owner
+    - image
+    - port

@@ -1,0 +1,15 @@
+apiVersion: meta.pkg.crossplane.io/v1
+kind: Configuration
+metadata:
+  name: software-factory-control-plane
+  annotations:
+    meta.crossplane.io/maintainer: cloud-native-software-factory
+    meta.crossplane.io/source: github.com/example/cloud-native-software-factory
+    meta.crossplane.io/license: Apache-2.0
+    meta.crossplane.io/description: Crossplane control plane API for tenant-local software factory environments.
+spec:
+  crossplane:
+    version: ">=v2.0.0"
+  dependsOn:
+    - provider: xpkg.crossplane.io/crossplane-contrib/function-go-templating
+      version: ">=v0.10.0"

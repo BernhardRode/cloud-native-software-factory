@@ -1,0 +1,3 @@
+resources:
+  - factory.yaml
+  - services/checkout-api.yaml
