@@ -1,0 +1,13 @@
+apiVersion: platform.example.org/v1alpha1
+kind: CapabilityBlueprint
+metadata:
+  name: capability-event-stream
+spec:
+  category: integration
+  description: Event streaming or queueing for asynchronous service communication.
+  localImplementation: NATS or Redpanda
+  productionImplementation: Managed Kafka, NATS, or cloud-native queue through Crossplane provider packages
+  outputs:
+    - brokerEndpoint
+    - connectionSecret
+    - topics

@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: customer-a-dev-software-factory
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/example/cloud-native-software-factory.git
+    targetRevision: HEAD
+    path: charts/software-factory
+    helm:
+      valueFiles:
+        - ../../gitops/tenants/customer-a/environments/dev/values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sf-customer-a-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

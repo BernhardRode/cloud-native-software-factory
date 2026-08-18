@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: software-factory
+  namespace: {{ .Values.tenant.namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets", "services", "pods"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: ["softwarefactory.io"]
+    resources: ["softwarefactorytenants", "softwarefactoryenvironments"]
+    verbs: ["get", "list", "watch", "update", "patch"]

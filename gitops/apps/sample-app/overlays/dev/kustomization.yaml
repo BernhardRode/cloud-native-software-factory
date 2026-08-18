@@ -1,0 +1,6 @@
+namespace: sf-customer-a-dev
+resources:
+  - ../../base
+commonLabels:
+  softwarefactory.io/tenant: customer-a
+  softwarefactory.io/environment: dev

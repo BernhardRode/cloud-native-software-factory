@@ -1,0 +1,14 @@
+apiVersion: platform.example.org/v1alpha1
+kind: CapabilityBlueprint
+metadata:
+  name: capability-postgres
+spec:
+  category: data
+  description: PostgreSQL database capability for tenant services.
+  localImplementation: CloudNativePG or development PostgreSQL chart
+  productionImplementation: Managed PostgreSQL through Crossplane provider packages
+  outputs:
+    - connectionSecret
+    - databaseName
+    - backupPolicy
+    - restoreRunbook

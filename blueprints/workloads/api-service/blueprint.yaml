@@ -1,0 +1,20 @@
+apiVersion: platform.example.org/v1alpha1
+kind: WorkloadBlueprint
+metadata:
+  name: workload-api-service
+spec:
+  description: Golden path for a containerized API service.
+  produces:
+    - Deployment
+    - Service
+    - ConfigMap
+    - HorizontalPodAutoscaler
+    - ServiceMonitor
+  requiredInputs:
+    - owner
+    - image
+    - port
+  optionalCapabilities:
+    - capability-postgres
+    - capability-redis
+    - capability-event-stream

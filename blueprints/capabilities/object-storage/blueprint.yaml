@@ -1,0 +1,13 @@
+apiVersion: platform.example.org/v1alpha1
+kind: CapabilityBlueprint
+metadata:
+  name: capability-object-storage
+spec:
+  category: data
+  description: Object storage for files, artifacts, reports, and backups.
+  localImplementation: MinIO
+  productionImplementation: Managed bucket through Crossplane provider packages
+  outputs:
+    - bucketName
+    - connectionSecret
+    - retentionPolicy

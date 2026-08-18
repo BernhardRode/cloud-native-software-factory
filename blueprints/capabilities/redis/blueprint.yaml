@@ -1,0 +1,12 @@
+apiVersion: platform.example.org/v1alpha1
+kind: CapabilityBlueprint
+metadata:
+  name: capability-redis
+spec:
+  category: data
+  description: Redis-compatible cache capability.
+  localImplementation: In-cluster Redis chart
+  productionImplementation: Managed cache service through Crossplane provider packages
+  outputs:
+    - connectionSecret
+    - sizingClass

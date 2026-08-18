@@ -1,0 +1,83 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: softwarefactoryenvironments.platform.example.org
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: SoftwareFactoryEnvironment
+    plural: softwarefactoryenvironments
+    singular: softwarefactoryenvironment
+    shortNames:
+      - sfe
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - tenant
+                - environment
+                - gitops
+              properties:
+                tenant:
+                  type: object
+                  required:
+                    - id
+                    - displayName
+                  properties:
+                    id:
+                      type: string
+                      pattern: '^[a-z0-9-]+$'
+                    displayName:
+                      type: string
+                    clusterName:
+                      type: string
+                environment:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      enum:
+                        - dev
+                        - staging
+                        - prod
+                    promotionTarget:
+                      type: string
+                gitops:
+                  type: object
+                  required:
+                    - repository
+                    - revision
+                  properties:
+                    repository:
+                      type: string
+                    revision:
+                      type: string
+                    path:
+                      type: string
+                factory:
+                  type: object
+                  properties:
+                    image:
+                      type: string
+                    replicas:
+                      type: integer
+                      minimum: 1
+                    enableSampleApp:
+                      type: boolean
+            status:
+              type: object
+              properties:
+                ready:
+                  type: boolean
+                endpoint:
+                  type: string

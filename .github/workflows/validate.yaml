@@ -1,0 +1,13 @@
+name: validate
+on:
+  pull_request:
+  push:
+    branches: [main, work]
+jobs:
+  helm-template:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - run: helm lint charts/software-factory
+      - run: ./scripts/render.sh >/tmp/software-factory.yaml

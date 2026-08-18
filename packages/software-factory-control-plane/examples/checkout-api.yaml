@@ -1,0 +1,16 @@
+apiVersion: platform.example.org/v1alpha1
+kind: ServiceBlueprint
+metadata:
+  name: checkout-api
+  namespace: sf-customer-a-dev
+spec:
+  owner: payments-team
+  blueprint: workload-api-service
+  image: ghcr.io/example/checkout-api:1.0.0
+  port: 8080
+  replicas: 2
+  dependencies:
+    postgres: true
+    redis: true
+    objectStorage: false
+    eventStream: false

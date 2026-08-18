@@ -1,0 +1,28 @@
+apiVersion: softwarefactory.io/v1alpha1
+kind: SoftwareFactoryTenant
+metadata:
+  name: {{ .Values.tenant.name }}
+  namespace: {{ .Values.tenant.namespace }}
+  labels:
+{{ include "software-factory.labels" . | indent 4 }}
+spec:
+  tenantId: {{ .Values.tenant.name | quote }}
+  displayName: {{ .Values.tenant.displayName | quote }}
+  clusterName: {{ .Values.tenant.clusterName | quote }}
+  gitopsRepository: {{ .Values.gitops.repository | quote }}
+  isolation:
+    namespace: {{ .Values.tenant.namespace | quote }}
+    networkPolicy: true
+---
+apiVersion: softwarefactory.io/v1alpha1
+kind: SoftwareFactoryEnvironment
+metadata:
+  name: {{ .Values.tenant.name }}-{{ .Values.tenant.environment }}
+  namespace: {{ .Values.tenant.namespace }}
+  labels:
+{{ include "software-factory.labels" . | indent 4 }}
+spec:
+  tenantRef: {{ .Values.tenant.name | quote }}
+  environmentName: {{ .Values.tenant.environment | quote }}
+  applications:
+    - sample-app

@@ -1,0 +1,14 @@
+tenant:
+  name: customer-b
+  displayName: Customer B
+  environment: dev
+  namespace: sf-customer-b-dev
+  clusterName: local
+
+gitops:
+  repository: https://github.com/example/cloud-native-software-factory.git
+  revision: HEAD
+
+sampleApp:
+  enabled: true
+  image: nginx:1.27-alpine

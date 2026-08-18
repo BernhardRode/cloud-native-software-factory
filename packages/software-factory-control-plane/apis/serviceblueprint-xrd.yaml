@@ -1,0 +1,65 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: serviceblueprints.platform.example.org
+spec:
+  scope: Namespaced
+  group: platform.example.org
+  names:
+    kind: ServiceBlueprint
+    plural: serviceblueprints
+    singular: serviceblueprint
+    shortNames:
+      - sbp
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - owner
+                - blueprint
+                - image
+                - port
+              properties:
+                owner:
+                  type: string
+                blueprint:
+                  type: string
+                  enum:
+                    - workload-web-service
+                    - workload-api-service
+                    - workload-worker-service
+                image:
+                  type: string
+                port:
+                  type: integer
+                  minimum: 1
+                  maximum: 65535
+                replicas:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                dependencies:
+                  type: object
+                  properties:
+                    postgres:
+                      type: boolean
+                    redis:
+                      type: boolean
+                    objectStorage:
+                      type: boolean
+                    eventStream:
+                      type: boolean
+            status:
+              type: object
+              properties:
+                ready:
+                  type: boolean
+                serviceName:
+                  type: string

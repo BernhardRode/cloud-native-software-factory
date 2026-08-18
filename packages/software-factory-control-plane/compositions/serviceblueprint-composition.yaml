@@ -1,0 +1,104 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: serviceblueprint.kubernetes.platform.example.org
+  labels:
+    platform.example.org/provider: kubernetes
+    platform.example.org/type: service-blueprint
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1alpha1
+    kind: ServiceBlueprint
+  mode: Pipeline
+  pipeline:
+    - step: render-service-blueprint
+      functionRef:
+        name: function-go-templating
+      input:
+        apiVersion: gotemplating.fn.crossplane.io/v1beta1
+        kind: GoTemplate
+        source: Inline
+        inline:
+          template: |
+            {{ $xr := .observed.composite.resource }}
+            {{ $name := $xr.metadata.name }}
+            {{ $labels := printf "app.kubernetes.io/name: %s\nplatform.example.org/owner: %s\nplatform.example.org/blueprint: %s" $name $xr.spec.owner $xr.spec.blueprint }}
+            ---
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: {{ printf "%s-service-metadata" $name }}
+              namespace: {{ $xr.metadata.namespace }}
+              labels:
+                {{ $labels | nindent 4 }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: service-metadata
+            data:
+              owner: {{ $xr.spec.owner | quote }}
+              blueprint: {{ $xr.spec.blueprint | quote }}
+              postgres: {{ default false $xr.spec.dependencies.postgres | quote }}
+              redis: {{ default false $xr.spec.dependencies.redis | quote }}
+              object-storage: {{ default false $xr.spec.dependencies.objectStorage | quote }}
+              event-stream: {{ default false $xr.spec.dependencies.eventStream | quote }}
+            ---
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: {{ $name }}
+              namespace: {{ $xr.metadata.namespace }}
+              labels:
+                {{ $labels | nindent 4 }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: service-deployment
+            spec:
+              replicas: {{ default 1 $xr.spec.replicas }}
+              selector:
+                matchLabels:
+                  app.kubernetes.io/name: {{ $name }}
+              template:
+                metadata:
+                  labels:
+                    app.kubernetes.io/name: {{ $name }}
+                    platform.example.org/owner: {{ $xr.spec.owner | quote }}
+                spec:
+                  containers:
+                    - name: app
+                      image: {{ $xr.spec.image | quote }}
+                      ports:
+                        - name: http
+                          containerPort: {{ $xr.spec.port }}
+                      envFrom:
+                        - configMapRef:
+                            name: {{ printf "%s-service-metadata" $name }}
+                      readinessProbe:
+                        httpGet:
+                          path: /healthz
+                          port: http
+                      livenessProbe:
+                        httpGet:
+                          path: /healthz
+                          port: http
+                      resources:
+                        requests:
+                          cpu: 100m
+                          memory: 128Mi
+                        limits:
+                          cpu: 500m
+                          memory: 512Mi
+            ---
+            apiVersion: v1
+            kind: Service
+            metadata:
+              name: {{ $name }}
+              namespace: {{ $xr.metadata.namespace }}
+              labels:
+                {{ $labels | nindent 4 }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: service
+            spec:
+              selector:
+                app.kubernetes.io/name: {{ $name }}
+              ports:
+                - name: http
+                  port: 80
+                  targetPort: http
