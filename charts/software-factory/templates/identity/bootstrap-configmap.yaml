@@ -1,0 +1,33 @@
+{{- if and .Values.identity.enabled .Values.identity.bootstrap.enabled }}
+{{- $clients := list }}
+{{- if .Values.groupExplorer.enabled }}
+{{- $callbacks := concat (list (include "software-factory.groupExplorerRedirectUri" .)) .Values.groupExplorer.extraCallbackURLs }}
+{{- $clients = append $clients (dict
+      "id" .Values.groupExplorer.clientId
+      "name" "Group Explorer"
+      "description" "Shows the groups of the logged in user"
+      "callbackURLs" $callbacks
+      "logoutCallbackURLs" (list (printf "%s/" (trimSuffix "/" .Values.groupExplorer.publicUrl)))
+      "launchURL" (trimSuffix "/" .Values.groupExplorer.publicUrl)
+      "skipConsent" true
+      "allowedGroups" .Values.groupExplorer.allowedGroups) }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pocket-id-bootstrap
+  namespace: {{ .Values.tenant.namespace }}
+  labels:
+{{ include "software-factory.componentLabels" (dict "ctx" $ "name" "pocket-id-bootstrap") | indent 4 }}
+data:
+  bootstrap.json: |
+{{ (dict
+      "groups" .Values.identity.bootstrap.groups
+      "users" .Values.identity.bootstrap.users
+      "clients" $clients
+      "loginLinks" (dict
+        "enabled" .Values.identity.bootstrap.loginLinks.enabled
+        "ttl" .Values.identity.bootstrap.loginLinks.ttl)) | toPrettyJson | indent 4 }}
+  bootstrap.py: |
+{{ .Files.Get "files/pocket-id-bootstrap.py" | indent 4 }}
+{{- end }}

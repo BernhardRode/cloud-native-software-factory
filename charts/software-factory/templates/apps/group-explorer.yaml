@@ -1,0 +1,169 @@
+{{- if .Values.groupExplorer.enabled }}
+{{- if not .Values.identity.enabled }}
+{{- fail "groupExplorer.enabled requires identity.enabled, the test app logs in against the tenant-local Pocket ID" }}
+{{- end }}
+{{- if not .Values.groupExplorer.existingSecret }}
+{{- if lt (len .Values.groupExplorer.clientSecret) 16 }}
+{{- fail "groupExplorer.clientSecret must be at least 16 characters" }}
+{{- end }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: group-explorer-oidc
+  namespace: {{ .Values.tenant.namespace }}
+  labels:
+{{ include "software-factory.componentLabels" (dict "ctx" $ "name" "group-explorer") | indent 4 }}
+type: Opaque
+stringData:
+  client-secret: {{ .Values.groupExplorer.clientSecret | quote }}
+---
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: group-explorer
+  namespace: {{ .Values.tenant.namespace }}
+  labels:
+{{ include "software-factory.componentLabels" (dict "ctx" $ "name" "group-explorer") | indent 4 }}
+data:
+  app.py: |
+{{ .Files.Get "files/group-explorer.py" | indent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: group-explorer
+  namespace: {{ .Values.tenant.namespace }}
+  labels:
+{{ include "software-factory.componentLabels" (dict "ctx" $ "name" "group-explorer") | indent 4 }}
+spec:
+  replicas: {{ .Values.groupExplorer.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: group-explorer
+  template:
+    metadata:
+      labels:
+{{ include "software-factory.componentLabels" (dict "ctx" $ "name" "group-explorer") | indent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: app
+          image: "{{ .Values.groupExplorer.image.repository }}:{{ .Values.groupExplorer.image.tag }}"
+          imagePullPolicy: {{ .Values.groupExplorer.image.pullPolicy }}
+          command: ["python3", "/app/app.py"]
+          ports:
+            - name: http
+              containerPort: {{ .Values.groupExplorer.service.port }}
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: PORT
+              value: {{ .Values.groupExplorer.service.port | quote }}
+            # Discovery happens in-cluster, the authorization endpoint it returns is the
+            # browser-facing APP_URL of Pocket ID.
+            - name: OIDC_DISCOVERY_URL
+              value: {{ printf "%s/.well-known/openid-configuration" (include "software-factory.pocketIdInternalUrl" .) | quote }}
+            - name: OIDC_ISSUER
+              value: {{ .Values.identity.pocketId.appUrl | quote }}
+            - name: OIDC_CLIENT_ID
+              value: {{ .Values.groupExplorer.clientId | quote }}
+            - name: OIDC_REDIRECT_URI
+              value: {{ include "software-factory.groupExplorerRedirectUri" . | quote }}
+            - name: APP_BASE_URL
+              value: {{ trimSuffix "/" .Values.groupExplorer.publicUrl | quote }}
+            - name: OIDC_SCOPES
+              value: "openid profile email groups"
+            - name: GROUPS_CLAIM
+              value: "groups"
+            - name: TENANT_NAME
+              value: {{ .Values.tenant.name | quote }}
+            - name: ENVIRONMENT_NAME
+              value: {{ .Values.tenant.environment | quote }}
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "software-factory.groupExplorerSecretName" . }}
+                  key: client-secret
+          volumeMounts:
+            - name: app
+              mountPath: /app
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+{{ toYaml .Values.groupExplorer.resources | indent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: app
+          configMap:
+            name: group-explorer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: group-explorer
+  namespace: {{ .Values.tenant.namespace }}
+  labels:
+{{ include "software-factory.componentLabels" (dict "ctx" $ "name" "group-explorer") | indent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: group-explorer
+  ports:
+    - name: http
+      port: {{ .Values.groupExplorer.service.port }}
+      targetPort: http
+{{- if .Values.groupExplorer.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: group-explorer
+  namespace: {{ .Values.tenant.namespace }}
+  labels:
+{{ include "software-factory.componentLabels" (dict "ctx" $ "name" "group-explorer") | indent 4 }}
+  {{- with .Values.groupExplorer.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.groupExplorer.ingress.className }}
+  ingressClassName: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.groupExplorer.ingress.tls }}
+  tls:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.groupExplorer.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: group-explorer
+                port:
+                  number: {{ .Values.groupExplorer.service.port }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,16 @@
+{{- if .Values.identity.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: pocket-id
+  namespace: {{ .Values.tenant.namespace }}
+  labels:
+{{ include "software-factory.componentLabels" (dict "ctx" $ "name" "pocket-id") | indent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: pocket-id
+  ports:
+    - name: http
+      port: {{ .Values.identity.pocketId.service.port }}
+      targetPort: http
+{{- end }}

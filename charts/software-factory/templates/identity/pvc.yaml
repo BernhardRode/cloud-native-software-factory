@@ -1,0 +1,18 @@
+{{- if and .Values.identity.enabled .Values.identity.pocketId.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pocket-id-data
+  namespace: {{ .Values.tenant.namespace }}
+  labels:
+{{ include "software-factory.componentLabels" (dict "ctx" $ "name" "pocket-id") | indent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.identity.pocketId.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.identity.pocketId.persistence.size }}
+  {{- with .Values.identity.pocketId.persistence.storageClassName }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end }}

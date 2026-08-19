@@ -1,0 +1,87 @@
+{{- if .Values.identity.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pocket-id
+  namespace: {{ .Values.tenant.namespace }}
+  labels:
+{{ include "software-factory.componentLabels" (dict "ctx" $ "name" "pocket-id") | indent 4 }}
+spec:
+  replicas: {{ .Values.identity.pocketId.replicas }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pocket-id
+  template:
+    metadata:
+      labels:
+{{ include "software-factory.componentLabels" (dict "ctx" $ "name" "pocket-id") | indent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: pocket-id
+          image: "{{ .Values.identity.pocketId.image.repository }}:{{ .Values.identity.pocketId.image.tag }}"
+          imagePullPolicy: {{ .Values.identity.pocketId.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.identity.pocketId.service.port }}
+          env:
+            # Browser-facing URL. Also the OIDC issuer of this environment.
+            - name: APP_URL
+              value: {{ .Values.identity.pocketId.appUrl | quote }}
+            # Token, userinfo, and JWKS URLs handed to in-cluster clients.
+            - name: INTERNAL_APP_URL
+              value: {{ include "software-factory.pocketIdInternalUrl" . | quote }}
+            - name: PORT
+              value: {{ .Values.identity.pocketId.service.port | quote }}
+            - name: TRUST_PROXY
+              value: {{ .Values.identity.pocketId.trustProxy | quote }}
+            - name: DB_CONNECTION_STRING
+              value: "data/pocket-id.db"
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "software-factory.pocketIdSecretName" . }}
+                  key: encryption-key
+            # Grants the bootstrap job admin access without a human doing the initial setup.
+            - name: STATIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "software-factory.pocketIdSecretName" . }}
+                  key: static-api-key
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+{{ toYaml .Values.identity.pocketId.resources | indent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: data
+        {{- if .Values.identity.pocketId.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: pocket-id-data
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+{{- end }}

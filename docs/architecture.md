@@ -22,6 +22,7 @@ Each customer cluster runs its own GitOps controller and reconciles only the sub
 4. **Crossplane control plane package**: `packages/software-factory-control-plane` defines the tenant platform API and its Composition.
 5. **Software factory chart**: `charts/software-factory` remains available as a Helm-only preview path.
 6. **Custom resources**: namespaced Crossplane composite resources make onboarding declarative.
+7. **Tenant identity provider**: Pocket ID runs inside the tenant namespace and issues the identities and group claims the environment authorizes against, see `identity-pocket-id.md`.
 
 ## Tenant isolation
 
@@ -32,7 +33,8 @@ Every tenant gets:
 - scoped RBAC,
 - tenant labels on every resource,
 - isolated factory configuration,
-- environment-specific values.
+- environment-specific values,
+- a tenant-local OIDC provider, so identities and passkeys stay in the namespace.
 
 ## GitOps flow
 

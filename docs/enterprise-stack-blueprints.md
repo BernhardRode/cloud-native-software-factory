@@ -11,6 +11,7 @@ A customer needs more than a Kubernetes cluster to build and run services. This 
 | Application workloads | Web services, APIs, workers, scheduled jobs | `workload-web-service`, `workload-api-service`, `workload-worker-service` |
 | Data | PostgreSQL, Redis, object storage, backups | `capability-postgres`, `capability-redis`, `capability-object-storage` |
 | Integration | Event streaming, async messaging, webhooks | `capability-event-stream` |
+| Identity | tenant-local OIDC provider, passkeys, groups, client provisioning | `capability-identity` |
 | Security | secrets, policy, admission, image scanning, SBOM/signing | `capability-security-baseline` |
 | Observability | metrics, logs, traces, dashboards, alerts | `capability-observability` |
 | Developer experience | templates, golden paths, docs, local dev setup | `developer-experience` |
@@ -29,9 +30,10 @@ The `standard-saas` reference architecture gives a company the pieces required t
 7. Redis capability.
 8. Object storage capability.
 9. Observability baseline.
-10. Security baseline.
-11. CI/CD and image promotion policy.
-12. Software factory automation.
+10. Tenant-local identity provider, see `identity-pocket-id.md`.
+11. Security baseline.
+12. CI/CD and image promotion policy.
+13. Software factory automation.
 
 ## Service API
 

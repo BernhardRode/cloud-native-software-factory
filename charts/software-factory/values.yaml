@@ -26,3 +26,135 @@ gitops:
 sampleApp:
   enabled: true
   image: nginx:1.27-alpine
+
+# Tenant-local identity provider. Pocket ID runs inside the customer namespace so
+# passkeys and identity data never leave the environment.
+identity:
+  enabled: true
+  pocketId:
+    replicas: 1
+    image:
+      repository: ghcr.io/pocket-id/pocket-id
+      tag: "v2"
+      pullPolicy: IfNotPresent
+    # Browser-facing URL of Pocket ID. It must match the URL users actually open,
+    # otherwise passkey registration and OIDC redirects fail.
+    # Default fits `kubectl port-forward svc/pocket-id 1411:1411`.
+    appUrl: http://localhost:1411
+    # Set to a reverse proxy IP, CIDR, or "true" when Pocket ID runs behind an ingress.
+    trustProxy: "false"
+    service:
+      port: 1411
+    persistence:
+      enabled: true
+      size: 1Gi
+      storageClassName: ""
+      accessMode: ReadWriteOnce
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    ingress:
+      enabled: false
+      className: ""
+      host: id.customer-a.dev.example.com
+      annotations: {}
+      tls: []
+    # Secret material. For every environment that is not a local sandbox, create the
+    # secret out of band (sealed secrets, external secrets, ...) and set existingSecret.
+    # The secret must contain the keys `encryption-key` and `static-api-key`.
+    existingSecret: ""
+    # Placeholders for local development only. Both values must be at least 16 characters.
+    encryptionKey: "dev-only-pocket-id-encryption-key"
+    staticApiKey: "dev-only-pocket-id-static-api-key"
+  # Declarative seeding of groups, users, and the OIDC client of the test app.
+  # The job is idempotent and re-runs on every install and upgrade.
+  bootstrap:
+    enabled: true
+    image:
+      repository: python
+      tag: "3.12-alpine"
+      pullPolicy: IfNotPresent
+    backoffLimit: 6
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+    groups:
+      - name: platform-admins
+        friendlyName: Platform Admins
+      - name: developers
+        friendlyName: Developers
+      - name: viewers
+        friendlyName: Viewers
+    users:
+      - username: admin
+        email: admin@customer-a.example
+        firstName: Ada
+        lastName: Admin
+        isAdmin: true
+        groups:
+          - platform-admins
+          - developers
+      - username: developer
+        email: developer@customer-a.example
+        firstName: Dev
+        lastName: Eloper
+        isAdmin: false
+        groups:
+          - developers
+      - username: viewer
+        email: viewer@customer-a.example
+        firstName: Vera
+        lastName: Viewer
+        isAdmin: false
+        groups:
+          - viewers
+    # Print one-time login links into the job log so the seeded users can register a
+    # passkey without an admin opening the UI first. Disable outside of sandboxes.
+    loginLinks:
+      enabled: true
+      ttl: 1h
+
+# Test application that logs in against Pocket ID and renders the groups of the
+# logged in user. It is configured automatically by the identity bootstrap job.
+groupExplorer:
+  enabled: true
+  replicas: 1
+  image:
+    repository: python
+    tag: "3.12-alpine"
+    pullPolicy: IfNotPresent
+  # Browser-facing URL of the test app. The OIDC redirect URI is derived from it.
+  # Default fits `kubectl port-forward svc/group-explorer 8080:8080`.
+  publicUrl: http://localhost:8080
+  clientId: group-explorer
+  # Additional callback URLs registered on the OIDC client, for example an ingress host.
+  extraCallbackURLs: []
+  # Restrict the client to the listed Pocket ID groups. Empty means every user may log in.
+  allowedGroups: []
+  service:
+    port: 8080
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  ingress:
+    enabled: false
+    className: ""
+    host: groups.customer-a.dev.example.com
+    annotations: {}
+    tls: []
+  # Secret holding the OIDC client secret under the key `client-secret`.
+  existingSecret: ""
+  # Placeholder for local development only, at least 16 characters.
+  clientSecret: "dev-only-group-explorer-client-secret"

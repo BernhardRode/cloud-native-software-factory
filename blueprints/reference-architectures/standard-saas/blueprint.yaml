@@ -14,6 +14,7 @@ spec:
     - capability-redis
     - capability-object-storage
     - capability-observability
+    - capability-identity
     - capability-security-baseline
     - developer-experience
     - software-factory

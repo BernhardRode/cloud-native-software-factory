@@ -15,3 +15,25 @@ gitops:
 sampleApp:
   enabled: true
   image: nginx:1.27-alpine
+
+identity:
+  enabled: true
+  pocketId:
+    appUrl: https://id.customer-a.example.com
+    trustProxy: "true"
+    ingress:
+      enabled: true
+      className: nginx
+      host: id.customer-a.example.com
+    # Production secrets never live in Git. Create the secret with the keys
+    # `encryption-key` and `static-api-key` out of band and reference it here.
+    existingSecret: pocket-id-credentials
+  bootstrap:
+    enabled: true
+    loginLinks:
+      enabled: false
+
+# The group explorer is a verification app for the identity integration and is
+# not part of a production tenant.
+groupExplorer:
+  enabled: false

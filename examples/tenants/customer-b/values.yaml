@@ -12,3 +12,23 @@ gitops:
 sampleApp:
   enabled: true
   image: nginx:1.27-alpine
+
+identity:
+  enabled: true
+  pocketId:
+    appUrl: http://localhost:1411
+  bootstrap:
+    enabled: true
+    users:
+      - username: admin
+        email: admin@customer-b.example
+        firstName: Ada
+        lastName: Admin
+        isAdmin: true
+        groups:
+          - platform-admins
+          - developers
+
+groupExplorer:
+  enabled: true
+  publicUrl: http://localhost:8080

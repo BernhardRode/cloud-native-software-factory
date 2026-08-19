@@ -11,3 +11,19 @@ jobs:
       - uses: azure/setup-helm@v4
       - run: helm lint charts/software-factory
       - run: ./scripts/render.sh >/tmp/software-factory.yaml
+      - name: Render every tenant environment
+        run: |
+          for values in gitops/tenants/*/environments/*/values.yaml examples/tenants/*/values.yaml; do
+            echo "rendering $values"
+            helm template validate charts/software-factory --values "$values" >/dev/null
+          done
+  python-sources:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # The bootstrap job and the group explorer test app run these files straight
+      # from a ConfigMap, so a syntax error would only surface in the cluster.
+      - run: python -m compileall -q charts/software-factory/files

@@ -1,0 +1,35 @@
+apiVersion: platform.example.org/v1alpha1
+kind: CapabilityBlueprint
+metadata:
+  name: capability-identity
+spec:
+  category: identity
+  description: Tenant-local OpenID Connect provider with passkey authentication and group based authorization.
+  implementation:
+    provider: pocket-id
+    deployment: in-cluster
+    dataResidency: tenant-namespace
+  controls:
+    - passwordlessAuthentication
+    - localIdentityStorage
+    - oidcDiscovery
+    - groupClaims
+    - groupRestrictedClients
+    - declarativeClientProvisioning
+    - auditLogging
+  interfaces:
+    - name: oidc
+      discovery: /.well-known/openid-configuration
+      scopes:
+        - openid
+        - profile
+        - email
+        - groups
+      claims:
+        - sub
+        - preferred_username
+        - email
+        - groups
+  verification:
+    testApplication: group-explorer
+    proves: An authenticated user sees exactly the groups the tenant identity provider reports for them.

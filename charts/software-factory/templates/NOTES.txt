@@ -1,0 +1,41 @@
+Tenant factory {{ .Values.tenant.name }}/{{ .Values.tenant.environment }} deployed to namespace {{ .Values.tenant.namespace }}.
+
+{{- if .Values.identity.enabled }}
+
+Identity (Pocket ID)
+--------------------
+  Issuer (browser facing): {{ .Values.identity.pocketId.appUrl }}
+  In-cluster base URL:     {{ include "software-factory.pocketIdInternalUrl" . }}
+
+{{- if not .Values.identity.pocketId.ingress.enabled }}
+  Reach the UI with:
+    kubectl port-forward -n {{ .Values.tenant.namespace }} svc/pocket-id {{ .Values.identity.pocketId.service.port }}:{{ .Values.identity.pocketId.service.port }}
+{{- end }}
+
+{{- if .Values.identity.bootstrap.enabled }}
+  Groups, users, and the OIDC client are seeded by the pocket-id-bootstrap job.
+{{- if .Values.identity.bootstrap.loginLinks.enabled }}
+  Read the one-time login links of the seeded users with:
+    kubectl logs -n {{ .Values.tenant.namespace }} job/pocket-id-bootstrap
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.groupExplorer.enabled }}
+
+Group Explorer test app
+-----------------------
+  App URL:      {{ trimSuffix "/" .Values.groupExplorer.publicUrl }}
+  Redirect URI: {{ include "software-factory.groupExplorerRedirectUri" . }}
+{{- if not .Values.groupExplorer.ingress.enabled }}
+  Reach it with:
+    kubectl port-forward -n {{ .Values.tenant.namespace }} svc/group-explorer {{ .Values.groupExplorer.service.port }}:{{ .Values.groupExplorer.service.port }}
+{{- end }}
+{{- end }}
+
+{{- if or (and .Values.identity.enabled (not .Values.identity.pocketId.existingSecret)) (and .Values.groupExplorer.enabled (not .Values.groupExplorer.existingSecret)) }}
+
+WARNING: this release uses the placeholder secrets from values.yaml. Set
+identity.pocketId.existingSecret and groupExplorer.existingSecret for anything
+that is not a local sandbox.
+{{- end }}

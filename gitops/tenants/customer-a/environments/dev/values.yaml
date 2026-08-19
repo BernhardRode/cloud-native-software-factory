@@ -12,3 +12,18 @@ gitops:
 sampleApp:
   enabled: true
   image: nginx:1.27-alpine
+
+identity:
+  enabled: true
+  pocketId:
+    # Local iteration: reachable through
+    # kubectl port-forward -n sf-customer-a-dev svc/pocket-id 1411:1411
+    appUrl: http://localhost:1411
+  bootstrap:
+    enabled: true
+
+groupExplorer:
+  enabled: true
+  # Local iteration: reachable through
+  # kubectl port-forward -n sf-customer-a-dev svc/group-explorer 8080:8080
+  publicUrl: http://localhost:8080

@@ -45,6 +45,10 @@ spec:
       layer: observability
       required: true
       description: Metrics, logs, traces, dashboards, alerts, service health, and SLO definitions.
+    - id: capability-identity
+      layer: security
+      required: true
+      description: Tenant-local OIDC provider with passkey login, group claims, and declarative client provisioning.
     - id: capability-security-baseline
       layer: security
       required: true
